@@ -6,6 +6,7 @@
         <div class="icon_divider"></div>
         <img :src="Location" width="28" />
       </div>
+
       <div class="column_2">
         <input class="from_input" type="text" placeholder="Ваша локация" />
         <div class="input_divider"></div>
@@ -15,6 +16,7 @@
           placeholder="Введите пункт назначения"
         />
       </div>
+
       <div class="column_3">
         <button class="replace_btn">
           <img :src="ReplaceSVG" width="16" />
@@ -37,7 +39,7 @@
     width: 100%;
     height: 100%;
     background-color: white;
-    box-shadow: 7px 0 20px 0 rgba(0, 0, 0, 0.07);
+    box-shadow: 0 7px 20px 0 rgba(105, 121, 248, 0.22);
     padding: 5px 15px;
     border-radius: var(--br-small);
   }
@@ -50,9 +52,9 @@
   }
 
   .icon_divider {
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='rgb(210, 215, 217)' stroke-width='2' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
     width: 1px;
     height: 15px;
-    border: 1px dashed #ecebed;
     transform: translateY(-50%);
     margin: auto;
   }
@@ -65,11 +67,11 @@
     border: none;
   }
 
-  .from_to_form > .column_2 > .from_input {
+  .from_to_form > .column_2 > input:focus {
     color: var(--accent-color-2);
   }
 
-  .from_to_form > .column_2 > .from_input::placeholder {
+  .from_to_form > .column_2 > input:focus::placeholder {
     color: var(--accent-color-2);
   }
 
@@ -79,8 +81,8 @@
   }
 
   .input_divider {
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='rgb(210, 215, 217)' stroke-width='4' stroke-dasharray='6%2c 14' stroke-dashoffset='15' stroke-linecap='square'/%3e%3c/svg%3e");
     height: 1px;
-    border: 1px dashed #ecebed;
     margin: 0 15px;
   }
 
@@ -91,12 +93,29 @@
   }
 
   .replace_btn {
+    --color: var(--accent-color-2);
+
     cursor: pointer;
+    border: none;
     width: 42px;
     height: 42px;
-    border: none;
-    padding: 8px;
-    background-color: var(--accent-color-2);
+    padding: 12px;
+    background-color: var(--color);
     border-radius: 50%;
+    transition: 0.15s ease-in-out;
+  }
+
+  .replace_btn:hover {
+    background-color: color-mix(in srgb, var(--color), black 10%);
+  }
+
+  .replace_btn:focus {
+    outline: 2px solid var(--color);
+    outline-offset: 2px;
+    outline-width: 2.5px;
+  }
+
+  .replace_btn:active {
+    scale: 0.98;
   }
 </style>

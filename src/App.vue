@@ -1,14 +1,14 @@
 <script setup lang="ts">
   import SidebarMenuView from '@/views/SidebarMenuView.vue';
   import ContentView from '@/views/ContentView.vue';
-  import Map from './components/Map.vue';
+  import MapView from './views/MapView.vue';
 </script>
 
 <template>
   <div class="wrapper_app">
     <SidebarMenuView />
     <div class="wrapper_column">
-      <Map />
+      <MapView />
       <ContentView />
     </div>
   </div>

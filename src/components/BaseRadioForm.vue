@@ -7,6 +7,11 @@
         :key="item.id"
         :for="`radio_input_${name}_${index}`"
         class="input__wrapper"
+        :class="[
+          { eco: item.name === 'Экологичный' },
+          { balance: item.name === 'Сбалансированный' },
+          { 'not-eco': item.name === 'Не самый экологичный' },
+        ]"
       >
         <span class="radio_btn_text">
           {{ item.name }}
@@ -71,6 +76,7 @@
 
   .radio_form {
     display: flex;
+    flex-wrap: wrap;
     flex-direction: row;
     justify-content: center;
     gap: 35px;
@@ -130,8 +136,21 @@
     border: 1px solid var(--accent-color-2);
   }
 
+  .input__wrapper.eco:active > hr {
+    border: 1px solid var(--toast-success);
+  }
+
+  .input__wrapper.balance:active > hr {
+    border: 1px solid var(--accent-color-2);
+  }
+
+  .input__wrapper.not-eco:active > hr {
+    border: 1px solid var(--accent-color-1);
+  }
+
   .input__wrapper:hover {
-    background-color: #6778f80d;
+    /* background-color: #6778f85b; */
+    box-shadow: 0 0 0 3px #e7e7e7;
   }
 
   /* .input__wrapper:first-child {
@@ -155,5 +174,50 @@
   }
   .input__wrapper:has(input[type='radio']:checked) > hr {
     border: 1px solid var(--accent-color-2);
+  }
+
+  .input__wrapper.eco:has(input[type='radio']:checked) {
+    background-color: color-mix(
+      in srgb,
+      var(--toast-success) 15%,
+      transparent 100%
+    );
+    box-shadow: 0 0 0 3px var(--toast-success);
+  }
+  .input__wrapper.eco:has(input[type='radio']:checked) > span {
+    color: var(--toast-success);
+  }
+  .input__wrapper.eco:has(input[type='radio']:checked) > hr {
+    border: 1px solid var(--toast-success);
+  }
+
+  .input__wrapper.balance:has(input[type='radio']:checked) {
+    background-color: color-mix(
+      in srgb,
+      var(--accent-color-2) 15%,
+      transparent 100%
+    );
+    box-shadow: 0 0 0 3px var(--accent-color-2);
+  }
+  .input__wrapper.balance:has(input[type='radio']:checked) > span {
+    color: var(--accent-color-2);
+  }
+  .input__wrapper.balance:has(input[type='radio']:checked) > hr {
+    border: 1px solid var(--accent-color-2);
+  }
+
+  .input__wrapper.not-eco:has(input[type='radio']:checked) {
+    background-color: color-mix(
+      in srgb,
+      var(--accent-color-1) 15%,
+      transparent 100%
+    );
+    box-shadow: 0 0 0 3px var(--accent-color-1);
+  }
+  .input__wrapper.not-eco:has(input[type='radio']:checked) > span {
+    color: var(--accent-color-1);
+  }
+  .input__wrapper.not-eco:has(input[type='radio']:checked) > hr {
+    border: 1px solid var(--accent-color-1);
   }
 </style>

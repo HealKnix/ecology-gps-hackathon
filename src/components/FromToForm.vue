@@ -10,11 +10,7 @@
       <div class="column_2">
         <input class="from_input" type="text" placeholder="Ваша локация" />
         <div class="input_divider"></div>
-        <input
-          class="to_input"
-          type="text"
-          placeholder="Введите пункт назначения"
-        />
+        <input class="to_input" type="text" placeholder="Пункт назначения" />
       </div>
 
       <div class="column_3">

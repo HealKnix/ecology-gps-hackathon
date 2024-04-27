@@ -8,13 +8,33 @@
       </div>
 
       <div class="column_2">
-        <input class="from_input" type="text" placeholder="Ваша локация" />
+        <input
+          class="from_input"
+          type="text"
+          placeholder="Ваша локация"
+          v-model="locationFrom"
+        />
         <div class="input_divider"></div>
-        <input class="to_input" type="text" placeholder="Пункт назначения" />
+        <input
+          class="to_input"
+          type="text"
+          placeholder="Пункт назначения"
+          v-model="locationnTo"
+        />
       </div>
 
       <div class="column_3">
-        <button class="replace_btn">
+        <button
+          class="replace_btn"
+          @click="
+            () => {
+              tempLocation = locationFrom;
+              locationFrom = locationnTo;
+              locationnTo = tempLocation;
+              tempLocation = '';
+            }
+          "
+        >
           <img :src="ReplaceSVG" width="16" />
         </button>
       </div>
@@ -26,6 +46,12 @@
   import Navigation from '@/assets/Navigation.svg';
   import Location from '@/assets/Location.svg';
   import ReplaceSVG from '@/assets/Combined Shape.svg';
+  import { ref } from 'vue';
+
+  const locationFrom = ref('');
+  const locationnTo = ref('');
+
+  const tempLocation = ref('');
 </script>
 
 <style scoped>
@@ -35,8 +61,8 @@
     width: 100%;
     height: 100%;
     background-color: white;
-    box-shadow: 0 7px 20px 0 rgba(105, 121, 248, 0.22);
-    padding: 5px 15px;
+    box-shadow: 0 7px 24px 0 rgba(105, 121, 248, 0.15);
+    padding: 10px 15px;
     border-radius: var(--br-small);
   }
 

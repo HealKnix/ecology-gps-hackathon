@@ -35,7 +35,7 @@
 <style scoped>
   .from_to_form {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 32px 1fr 50px;
     width: 100%;
     height: 100%;
     background-color: white;
@@ -61,10 +61,11 @@
 
   .from_to_form > .column_2 > input {
     outline: none;
-    width: 100;
-    font-size: 20px;
+    width: 100%;
+    font-size: 18px;
     padding: 15px;
     border: none;
+    text-overflow: ellipsis;
   }
 
   .from_to_form > .column_2 > input:focus {

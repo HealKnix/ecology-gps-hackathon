@@ -12,8 +12,6 @@
       type: String,
     },
   });
-
-  console.log(123123);
 </script>
 
 <style scoped>

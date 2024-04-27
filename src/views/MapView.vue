@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-  import leaflet, { Marker, type CircleMarkerOptions } from 'leaflet';
+  import leaflet from 'leaflet';
   import { onBeforeMount, onMounted, watchEffect, ref } from 'vue';
   import { useGeolocation } from '@vueuse/core';
   import axios from 'axios';
@@ -215,7 +215,8 @@
     });
 
     map.addEventListener('click', (e) => {
-      if (!e.originalEvent.srcElement.id) return;
+      // @ts-ignore
+      if (!e.originalEvent.srcElement?.id) return;
 
       const { lat: latitude, lng: longitude } = e.latlng;
 

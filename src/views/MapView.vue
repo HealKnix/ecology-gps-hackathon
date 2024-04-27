@@ -64,7 +64,15 @@
   let map: leaflet.Map;
   let userGeoMarker: leaflet.Marker;
 
-  let sensorsList: RootObject[];
+  let sensorsList: RootObject[] = [];
+
+  let markerOptions = {
+    title: 'MyLocation',
+    clickable: true,
+    draggable: true,
+  };
+
+  leaflet.Marker.mergeOptions(markerOptions);
 
   const coordIrkutsk = {
     latitude: 51,

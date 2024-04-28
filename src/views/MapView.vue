@@ -50,12 +50,12 @@
 
 <script setup lang="ts">
   import leaflet from 'leaflet';
-  import { onBeforeMount, onMounted, watchEffect, ref } from 'vue';
+  import { onBeforeMount, onMounted, watchEffect, ref, watch } from 'vue';
   import { useGeolocation } from '@vueuse/core';
   import axios from 'axios';
 
   import { userMarker, nearbyMarkers } from '@/stores/mapStore';
-  import { type RootObject, type SensorDataValue } from '@/types/SensorType';
+  import type { RootObject, SensorDataValue } from '@/types/SensorType';
 
   const showSensorZones = ref(false);
 
@@ -150,8 +150,8 @@
             ],
           ],
           {
-            color: '#00000000',
-            fillColor: '#00000000',
+            color: showSensorZones.value ? colorQuality : '#00000000',
+            fillColor: showSensorZones.value ? colorQuality : '#00000000',
             fillOpacity: 0.2,
             weight: 0.5,
             interactive: true,

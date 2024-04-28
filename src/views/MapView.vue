@@ -50,7 +50,11 @@
 
 <script setup lang="ts">
   import leaflet from 'leaflet';
-  import { onBeforeMount, onMounted, watchEffect, ref, watch } from 'vue';
+  import 'leaflet-routing-machine';
+  import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+  import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
+  import 'leaflet-control-geocoder/dist/Control.Geocoder.js';
+  import { onBeforeMount, onMounted, watchEffect, ref } from 'vue';
   import { useGeolocation } from '@vueuse/core';
   import axios from 'axios';
 
@@ -70,7 +74,16 @@
     title: 'MyLocation',
     clickable: true,
     draggable: true,
+    iconUrl: '/marker.svg',
   };
+
+  let DefaultIcon = leaflet.icon({
+    iconUrl: '/marker.svg',
+    iconSize: [41, 41],
+    iconAnchor: [20, 35],
+    popupAnchor: [-20, -20],
+  });
+  leaflet.Marker.prototype.options.icon = DefaultIcon;
 
   leaflet.Marker.mergeOptions(markerOptions);
 
@@ -160,11 +173,11 @@
         .addTo(map)
         .bindPopup(
           `
-          ${sensor.timestamp} </br>
-          Страна: ${sensor.location.country} </br>
-          Координаты (<strong>${sensorLatitude.toFixed(3)}, ${sensorLongitude.toFixed(3)}</strong>) </br>
-          ${description}
-          `,
+            ${sensor.timestamp} </br>
+            Страна: ${sensor.location.country} </br>
+            Координаты (<strong>${sensorLatitude.toFixed(3)}, ${sensorLongitude.toFixed(3)}</strong>) </br>
+            ${description}
+            `,
           {
             offset: [0, -15],
           },
@@ -222,20 +235,76 @@
         );
     });
 
-    map.addEventListener('click', (e) => {
+    let markers = <
+      {
+        start: leaflet.Marker | null;
+        end: leaflet.Marker | null;
+      }
+    >{
+      start: null,
+      end: null,
+    };
+    leaflet.Marker;
+    let control: leaflet.Routing.Control;
+    let index = 0;
+
+    map.addEventListener('click', async (e) => {
       // @ts-ignore
       if (!e.originalEvent.srcElement?.id) return;
 
       const { lat: latitude, lng: longitude } = e.latlng;
 
-      leaflet
-        .marker([latitude, longitude])
-        .addTo(map)
-        .bindPopup(
-          `Координаты (<strong>${latitude.toFixed(3)}, ${longitude.toFixed(3)}</strong>)`,
-        );
+      // markers.push({ x: latitude, y: longitude });
 
-      nearbyMarkers.value.push({ latitude, longitude });
+      // leaflet
+      //   .marker([latitude, longitude])
+      //   .addTo(map)
+      //   .bindPopup(
+      //     `Координаты (<strong>${latitude.toFixed(3)}, ${longitude.toFixed(3)}</strong>)`,
+      //   );
+
+      if (index == 2) {
+        map.removeControl(control);
+        // @ts-ignore
+        map.removeLayer(markers.start);
+        // @ts-ignore
+        map.removeLayer(markers.end);
+        index = 0;
+        return;
+      }
+
+      if (index == 0) {
+        markers.start = leaflet.marker([latitude, longitude]).addTo(map);
+        index++;
+        // nearbyMarkers.value.push({ latitude, longitude });
+        return;
+      } else {
+        markers.end = leaflet.marker([latitude, longitude]).addTo(map);
+        index++;
+      }
+
+      control = leaflet.Routing.control({
+        waypoints: [
+          leaflet.latLng(markers.start.getLatLng()),
+          leaflet.latLng(markers.end.getLatLng()),
+        ],
+        lineOptions: {
+          styles: [
+            {
+              color: '#6979f8',
+              weight: 4,
+              opacity: 0.75,
+            },
+          ],
+        },
+        show: false,
+        routeWhileDragging: false,
+        geocoder: leaflet.Control.Geocoder.nominatim(),
+        addWaypoints: false,
+        draggableWaypoints: true,
+        fitSelectedRoutes: true,
+        showAlternatives: false,
+      }).addTo(map);
     });
   });
 
@@ -300,7 +369,7 @@
     transition: 0.15s ease-in-out;
   }
 
-  @media (width <= 500px) {
+  @media (width <=500px) {
     #map {
       height: calc(100dvh - 50px);
     }

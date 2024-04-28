@@ -66,6 +66,7 @@
 
   .ecology_cards {
     padding: 20px 0;
+    margin-bottom: 20px;
   }
 
   @media (width <= 500px) {

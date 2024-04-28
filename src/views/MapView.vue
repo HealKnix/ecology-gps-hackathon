@@ -285,9 +285,10 @@
 
       control = leaflet.Routing.control({
         waypoints: [
-          leaflet.latLng(markers.start.getLatLng()),
-          leaflet.latLng(markers.end.getLatLng()),
+          leaflet.latLng(markers.start?.getLatLng() ?? [0, 0]),
+          leaflet.latLng(markers.end?.getLatLng() ?? [0, 0]),
         ],
+        // @ts-ignore
         lineOptions: {
           styles: [
             {
@@ -299,6 +300,7 @@
         },
         show: false,
         routeWhileDragging: false,
+        // @ts-ignore
         geocoder: leaflet.Control.Geocoder.nominatim(),
         addWaypoints: false,
         draggableWaypoints: true,

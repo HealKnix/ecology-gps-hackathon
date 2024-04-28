@@ -302,7 +302,7 @@
 
   @media (width <= 500px) {
     #map {
-      height: calc(var(--index) * 30);
+      height: calc(100dvh - 50px);
     }
   }
 </style>

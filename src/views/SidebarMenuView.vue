@@ -20,17 +20,9 @@
   import BaseButton from '@/components/BaseButton.vue';
   import FromToForm from '@/components/FromToForm.vue';
   import AngleSVG from '@/assets/angle.svg';
-  import { ref, watchEffect } from 'vue';
-  import { useResizeStore } from '../stores/resizeStore';
+  import { ref } from 'vue';
 
   const show = ref(true);
-  const resizeStore = useResizeStore();
-
-  watchEffect(() => {
-    if (resizeStore.width < 1000 && show.value) {
-      show.value = false;
-    }
-  });
 </script>
 
 <style scoped>

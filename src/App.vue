@@ -24,9 +24,17 @@
   }
 
   .wrapper_column {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     height: 100%;
     overflow: auto;
+  }
+
+  @media (width <= 1405px) {
+    .wrapper_column {
+      display: block;
+    }
   }
 
   @media (width <= 1000px) {

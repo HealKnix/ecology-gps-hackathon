@@ -341,7 +341,7 @@
   #map {
     position: relative;
     width: 100%;
-    height: calc(var(--index) * 20);
+    height: 100%;
   }
 
   .ildus_say_meow {
@@ -369,6 +369,12 @@
     cursor: pointer;
     box-shadow: 0 0 15px #00000033;
     transition: 0.15s ease-in-out;
+  }
+
+  @media (width <=1405px) {
+    #map {
+      height: calc(100dvh - 200px);
+    }
   }
 
   @media (width <=500px) {

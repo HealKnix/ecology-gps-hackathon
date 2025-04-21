@@ -4,30 +4,7 @@
     <div
       class="show_sensor_zones_btn"
       :style="{ backgroundColor: showSensorZones ? '#6979f8' : 'white' }"
-      @click="
-        () => {
-          showSensorZones = !showSensorZones;
-          if (showSensorZones) {
-            sensorsList.forEach((sensor: RootObject) => {
-              sensor.polygon.setStyle({
-                color: sensor.color_quality,
-                fillColor: sensor.color_quality,
-                interactive: true,
-              });
-              sensor.polygon.redraw();
-            });
-          } else {
-            sensorsList.forEach((sensor: RootObject) => {
-              sensor.polygon.setStyle({
-                color: '#00000000',
-                fillColor: '#00000000',
-                interactive: false,
-              });
-              sensor.polygon.redraw();
-            });
-          }
-        }
-      "
+      @click="handleClick"
     >
       <svg
         width="26"
@@ -50,25 +27,42 @@
 
 <script setup lang="ts">
   import leaflet from 'leaflet';
-  import 'leaflet-routing-machine';
-  import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
   import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
   import 'leaflet-control-geocoder/dist/Control.Geocoder.js';
-  import { onBeforeMount, onMounted, watchEffect, ref } from 'vue';
-  import { useGeolocation } from '@vueuse/core';
-  import axios from 'axios';
+  import 'leaflet-routing-machine';
+  import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+  import { computed, onMounted, ref } from 'vue';
 
-  import { userMarker, nearbyMarkers } from '@/stores/mapStore';
-  import type { RootObject, SensorDataValue } from '@/types/SensorType';
+  import summer_routes from '@/data/summer-routes.json';
+  import winter_routes from '@/data/winter-routes.json';
+
+  interface Route {
+    id: string;
+    name: string;
+    color: string;
+    markers: {
+      position: [number, number];
+      name: string;
+      description?: string;
+    }[];
+    start: leaflet.Marker;
+    end: leaflet.Marker;
+  }
 
   const showSensorZones = ref(false);
+  const isWinterRoutes = ref(false);
+  const routeControls = ref<leaflet.Routing.Control[]>([]);
 
-  const { coords } = useGeolocation();
+  const coordDefault = {
+    latitude: 64.0365088,
+    longitude: 129.7415096,
+  };
 
-  let map: leaflet.Map;
-  let userGeoMarker: leaflet.Marker;
-
-  let sensorsList: RootObject[] = [];
+  const map = computed<leaflet.Map>(() =>
+    leaflet
+      .map('map')
+      .setView([coordDefault.latitude, coordDefault.longitude], 5),
+  );
 
   let markerOptions = {
     title: 'MyLocation',
@@ -87,253 +81,90 @@
 
   leaflet.Marker.mergeOptions(markerOptions);
 
-  const coordIrkutsk = {
-    latitude: 51,
-    longitude: 13,
+  const markers = ref<Route[]>(summer_routes as Route[]);
+
+  const handleClick = () => {
+    showSensorZones.value = !showSensorZones.value;
+    isWinterRoutes.value = !isWinterRoutes.value;
+
+    routeControls.value.forEach((control) => {
+      map.value.removeControl(control);
+    });
+    routeControls.value = [];
+
+    markers.value.forEach((route) => {
+      if (route.start) route.start.remove();
+      if (route.end) route.end.remove();
+    });
+
+    markers.value = isWinterRoutes.value
+      ? (winter_routes as Route[])
+      : (summer_routes as Route[]);
+
+    drawRoutes();
   };
 
-  onBeforeMount(async () => {
-    sensorsList = await axios
-      .get('https://data.sensor.community/static/v1/data.json')
-      .then((res) => {
-        return res.data;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+  const drawRoutes = () => {
+    for (let i = 0; i < markers.value.length; i++) {
+      if (markers.value[i]) {
+        markers.value[i].start = leaflet
+          .marker(markers.value[i].markers[0].position)
+          .addTo(map.value);
+        markers.value[i].end = leaflet
+          .marker(markers.value[i].markers[1].position)
+          .addTo(map.value);
 
-    let scale = 19 - map.getZoom();
-
-    if (map.getZoom() >= 12) {
-      scale = (19 - 15) * 0.5;
-    } else if (map.getZoom() >= 8) {
-      scale = (19 - map.getZoom()) ** 1.25;
-    } else {
-      scale = (19 - map.getZoom()) ** 1.75;
-    }
-
-    sensorsList?.forEach((sensor: RootObject) => {
-      const sensorLatitude = parseFloat(sensor.location.latitude);
-      const sensorLongitude = parseFloat(sensor.location.longitude);
-
-      let description: string = '';
-      let pmQuality = 0;
-      let colorQuality = '#6979f8';
-
-      sensor.sensordatavalues?.forEach((data: SensorDataValue) => {
-        if (data.value_type.includes('P'))
-          pmQuality += parseFloat(data.value ?? '') ?? 0;
-        description += `<strong>${data.value_type}</strong> : ${data.value ?? 'Нет данных'} </br>`;
-      });
-
-      if (pmQuality <= 10) {
-        colorQuality = '#00796B';
-      } else if (pmQuality <= 20) {
-        colorQuality = '#F9A825';
-      } else if (pmQuality <= 40) {
-        colorQuality = 'E65100';
-      } else if (pmQuality <= 60) {
-        colorQuality = '#DD2C00';
-      } else {
-        colorQuality = '#960084';
-      }
-
-      sensor['color_quality'] = colorQuality;
-
-      sensor['polygon'] = leaflet
-        .polygon(
-          [
-            [sensorLatitude + 0.001 * scale, sensorLongitude],
-            [
-              sensorLatitude + 0.0005 * scale,
-              sensorLongitude + 0.00145 * scale,
-            ],
-            [
-              sensorLatitude - 0.0005 * scale,
-              sensorLongitude + 0.00145 * scale,
-            ],
-            [sensorLatitude - 0.001 * scale, sensorLongitude],
-            [
-              sensorLatitude - 0.0005 * scale,
-              sensorLongitude - 0.00145 * scale,
-            ],
-            [
-              sensorLatitude + 0.0005 * scale,
-              sensorLongitude - 0.00145 * scale,
-            ],
+        const control = leaflet.Routing.control({
+          waypoints: [
+            leaflet.latLng(markers.value[i].start.getLatLng() ?? [0, 0]),
+            leaflet.latLng(markers.value[i].end.getLatLng() ?? [0, 0]),
           ],
-          {
-            color: showSensorZones.value ? colorQuality : '#00000000',
-            fillColor: showSensorZones.value ? colorQuality : '#00000000',
-            fillOpacity: 0.2,
-            weight: 0.5,
-            interactive: true,
+          // @ts-ignore
+          lineOptions: {
+            styles: [
+              {
+                color: markers.value[i].color,
+                weight: 4,
+                opacity: 0.75,
+              },
+            ],
           },
-        )
-        .addTo(map)
-        .bindPopup(
-          `
-            ${sensor.timestamp} </br>
-            Страна: ${sensor.location.country} </br>
-            Координаты (<strong>${sensorLatitude.toFixed(3)}, ${sensorLongitude.toFixed(3)}</strong>) </br>
-            ${description}
-            `,
-          {
-            offset: [0, -15],
-          },
-        );
-    });
-  });
+          show: false,
+          routeWhileDragging: false,
+          // @ts-ignore
+          geocoder: leaflet.Control.Geocoder.nominatim(),
+          addWaypoints: false,
+          showAlternatives: false,
+          fitSelectedRoutes: false,
+          alternativeClassName: markers.value[i].id,
+        }).addTo(map.value);
 
-  onMounted(async () => {
-    map = leaflet
-      .map('map')
-      .setView([coordIrkutsk.latitude, coordIrkutsk.longitude], 4);
-
-    map.addEventListener('zoom', () => {
-      let scale = 19 - map.getZoom();
-
-      if (map.getZoom() >= 12) {
-        scale = (19 - 15) * 0.5;
-      } else if (map.getZoom() >= 8) {
-        scale = (19 - map.getZoom()) ** 1.25;
-      } else {
-        scale = (19 - map.getZoom()) ** 1.75;
+        routeControls.value.push(control);
       }
+    }
+  };
 
-      sensorsList?.forEach((sensor: RootObject) => {
-        const sensorLatitude = parseFloat(sensor.location.latitude);
-        const sensorLongitude = parseFloat(sensor.location.longitude);
+  onMounted(() => {
+    map.value.addEventListener('zoom', () => {
+      let scale = 19 - (map.value?.getZoom() ?? 0);
 
-        sensor.polygon.setLatLngs([
-          [sensorLatitude + 0.001 * scale, sensorLongitude],
-          [sensorLatitude + 0.0005 * scale, sensorLongitude + 0.00145 * scale],
-          [sensorLatitude - 0.0005 * scale, sensorLongitude + 0.00145 * scale],
-          [sensorLatitude - 0.001 * scale, sensorLongitude],
-          [sensorLatitude - 0.0005 * scale, sensorLongitude - 0.00145 * scale],
-          [sensorLatitude + 0.0005 * scale, sensorLongitude - 0.00145 * scale],
-        ]);
-
-        sensor.polygon.redraw();
-      });
+      if ((map.value?.getZoom() ?? 0) >= 12) {
+        scale = (19 - 15) * 0.5;
+      } else if ((map.value?.getZoom() ?? 0) >= 8) {
+        scale = (19 - (map.value?.getZoom() ?? 0)) ** 1.25;
+      } else {
+        scale = (19 - (map.value?.getZoom() ?? 0)) ** 1.75;
+      }
     });
-
     leaflet
       .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution:
           '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       })
-      .addTo(map);
+      .addTo(map.value);
 
-    nearbyMarkers.value.forEach(({ latitude, longitude }: any) => {
-      leaflet
-        .marker([latitude, longitude])
-        .addTo(map)
-        .bindPopup(
-          `Координаты (<strong>${latitude.toFixed(3)}, ${longitude.toFixed(3)}</strong>)`,
-        );
-    });
-
-    let markers = <
-      {
-        start: leaflet.Marker | null;
-        end: leaflet.Marker | null;
-      }
-    >{
-      start: null,
-      end: null,
-    };
-    leaflet.Marker;
-    let control: leaflet.Routing.Control;
-    let index = 0;
-
-    map.addEventListener('click', async (e) => {
-      // @ts-ignore
-      if (!e.originalEvent.srcElement?.id) return;
-
-      const { lat: latitude, lng: longitude } = e.latlng;
-
-      // markers.push({ x: latitude, y: longitude });
-
-      // leaflet
-      //   .marker([latitude, longitude])
-      //   .addTo(map)
-      //   .bindPopup(
-      //     `Координаты (<strong>${latitude.toFixed(3)}, ${longitude.toFixed(3)}</strong>)`,
-      //   );
-
-      if (index == 2) {
-        map.removeControl(control);
-        // @ts-ignore
-        map.removeLayer(markers.start);
-        // @ts-ignore
-        map.removeLayer(markers.end);
-        index = 0;
-        return;
-      }
-
-      if (index == 0) {
-        markers.start = leaflet.marker([latitude, longitude]).addTo(map);
-        index++;
-        // nearbyMarkers.value.push({ latitude, longitude });
-        return;
-      } else {
-        markers.end = leaflet.marker([latitude, longitude]).addTo(map);
-        index++;
-      }
-
-      control = leaflet.Routing.control({
-        waypoints: [
-          leaflet.latLng(markers.start?.getLatLng() ?? [0, 0]),
-          leaflet.latLng(markers.end?.getLatLng() ?? [0, 0]),
-        ],
-        // @ts-ignore
-        lineOptions: {
-          styles: [
-            {
-              color: '#6979f8',
-              weight: 4,
-              opacity: 0.75,
-            },
-          ],
-        },
-        show: false,
-        routeWhileDragging: false,
-        // @ts-ignore
-        geocoder: leaflet.Control.Geocoder.nominatim(),
-        addWaypoints: false,
-        draggableWaypoints: true,
-        fitSelectedRoutes: true,
-        showAlternatives: false,
-      }).addTo(map);
-    });
-  });
-
-  watchEffect(() => {
-    if (
-      coords.value.latitude !== Number.POSITIVE_INFINITY &&
-      coords.value.longitude !== Number.POSITIVE_INFINITY
-    ) {
-      userMarker.value.latitude = coords.value.latitude;
-      userMarker.value.longitude = coords.value.longitude;
-
-      if (userGeoMarker) {
-        map.removeLayer(userGeoMarker);
-      }
-
-      userGeoMarker = leaflet
-        .marker([userMarker.value.latitude, userMarker.value.longitude])
-        .addTo(map)
-        .bindPopup('User Marker');
-
-      map.setView([userMarker.value.latitude, userMarker.value.longitude], 13);
-
-      const el = userGeoMarker.getElement();
-      if (el) {
-        el.style.filter = 'hue-rotate(120deg)';
-      }
-    }
+    drawRoutes();
   });
 </script>
 
